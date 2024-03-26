@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import PromptCard from './PromptCard';
+import { useDebouncedCallback } from 'use-debounce';
 
 const PromptCardList = ({ data, handleTagClick }) => {
     return (
@@ -23,7 +24,27 @@ const Feed = () => {
     const [searchText, setSearchText] = useState('');
     const [posts, setPosts] = useState([]);
 
-    const handleSearchChange = (e) => {
+    const handleSearchChange = useDebouncedCallback(async (e) => {
+
+        let response = [];
+        if (e.target.value) {
+            response = await fetch(`/api/prompt/search/${e.target.value}/${e.target.value}`);
+        } else {
+            response = await fetch('/api/prompt');
+        }
+
+        const data = await response.json();
+
+        setPosts(data);
+
+    }, 500);
+
+    const handleTagClicked = async (tag) => {
+
+        const response = await fetch(`/api/prompt/search/${tag}/${tag}`);
+        const data = await response.json();
+
+        setPosts(data);
 
     };
 
@@ -44,8 +65,8 @@ const Feed = () => {
                 <input
                     type='text'
                     placeholder='Search for a tag or a username'
-                    value={searchText}
-                    onChange={handleSearchChange}
+                    // value={searchText}
+                    onChange={e => handleSearchChange(e)}
                     required
                     className='search_input peer'
                 />
@@ -53,7 +74,7 @@ const Feed = () => {
 
             <PromptCardList
                 data={posts}
-                handleTagClick={() => { }}
+                handleTagClick={handleTagClicked}
             />
         </section>
     )
