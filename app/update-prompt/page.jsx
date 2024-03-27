@@ -1,14 +1,10 @@
-"use client";
-
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 
 import Form from '@components/Form';
 
 const UpdatePrompt = () => {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const promptId = searchParams.get('id');
 
     const [submitting, setSubmitting] = useState(false);
     const [post, setPost] = useState({
@@ -18,6 +14,7 @@ const UpdatePrompt = () => {
 
     useEffect(() => {
         const getPromptDetails = async () => {
+            const promptId = router.query.id;
             const response = await fetch(`/api/prompt/${promptId}`);
             const data = await response.json();
 
@@ -27,13 +24,15 @@ const UpdatePrompt = () => {
             });
         }
 
-        if (promptId) getPromptDetails();
+        getPromptDetails();
 
-    }, [promptId])
+    }, [router.query.id])
 
     const updatePrompt = async (e) => {
         e.preventDefault();
         setSubmitting(true);
+
+        const promptId = router.query.id;
 
         if (!promptId) return alert('Prompt ID not found');
 
@@ -58,13 +57,15 @@ const UpdatePrompt = () => {
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <Form
-                type="Edit"
-                post={post}
-                setPost={setPost}
-                submitting={submitting}
-                handleSubmit={updatePrompt}
-            />
+            {typeof window !== 'undefined' && (
+                <Form
+                    type="Edit"
+                    post={post}
+                    setPost={setPost}
+                    submitting={submitting}
+                    handleSubmit={updatePrompt}
+                />
+            )}
         </Suspense>
     )
 }
